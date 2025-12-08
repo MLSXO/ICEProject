@@ -1,0 +1,102 @@
+@startuml
+
+' ===== Classes =====
+
+class Main {
+    - WIDTH : int
+    - HEIGHT : int
+    - FPS : int
+    + main(args : String[]) : void
+}
+
+class GameEngine {
+    - score : int
+    - snake : Snake
+    - fruits : List<Fruit>
+    - activePowerUp : PowerUp
+    - running : boolean
+    + startGame() : void
+    + update() : void
+    + isRunning() : boolean
+    + getScore() : int
+    + getSnake() : Snake
+    + getFruits() : List<Fruit>
+    + getActivePowerUp() : PowerUp
+}
+
+class Snake {
+    - body : List<Point>
+    - direction : Direction
+    - speed : int
+    + move() : void
+    + setDirection(d : Direction) : void
+    + getSpeed() : int
+}
+
+class Fruit {
+    - position : Point
+    + getPosition() : Point
+}
+
+class PowerUp {
+    - type : String
+    - duration : int
+    + applyEffect(snake : Snake) : void
+}
+
+class GUI {
+    + update(score : int, speed : int, activePowerUp : PowerUp) : void
+}
+
+class Renderer {
+    + clear() : void
+    + draw(obj) : void
+    + display() : void
+}
+
+class GameWindow {
+    + getInput() : InputState
+}
+
+class InputState {
+    + isUp() : boolean
+    + isDown() : boolean
+    + isLeft() : boolean
+    + isRight() : boolean
+}
+
+class GameOverScreen {
+    - score : int
+    + display() : void
+    + playerWantsRestart() : boolean
+}
+
+enum Direction {
+    UP
+    DOWN
+    LEFT
+    RIGHT
+}
+
+' ===== Relations =====
+
+Main --> GameWindow
+Main --> Renderer
+Main --> GameEngine
+Main --> GUI
+Main --> GameOverScreen
+
+GameEngine --> Snake
+GameEngine --> Fruit : "0..*"
+GameEngine --> PowerUp : "0..1"
+
+Renderer --> Snake
+Renderer --> Fruit
+Renderer --> GUI
+
+Main --> InputState
+GameWindow --> InputState
+
+Snake --> Direction
+
+@enduml
