@@ -6,9 +6,9 @@ public class Main {
     private static final int HEIGHT = 600;
     private static final int FPS = 60;
 
-    public static void main (String[] args) {
+    public static void main(String[] args) {
 
-        // Game Window
+        // Game Window (JFrame)
         GameWindow window = new GameWindow("Snake Game", WIDTH, HEIGHT);
         Renderer renderer = new Renderer(window);
 
@@ -16,12 +16,12 @@ public class Main {
         GameEngine engine = new GameEngine();
         GUI gui = new GUI();
 
-        // Start game
+        // Start game (starter Swing Timer i GameEngine)
         engine.startGame();
 
         long frameTime = 1000 / FPS;
 
-        // Game Loop
+        // Game Loop (render + input loop)
         while (engine.isRunning()) {
 
             long start = System.currentTimeMillis();
@@ -34,9 +34,12 @@ public class Main {
             if (input.isLeft()) engine.getSnake().setDirection(Direction.LEFT);
             if (input.isRight()) engine.getSnake().setDirection(Direction.RIGHT);
 
-            // Update
-            engine.update();
-            gui.update(engine.getScore(), engine.getSnake().getSpeed(), engine.getActivePowerUp());
+            // GUI update (GameEngine updater sig selv via Swing Timer)
+            gui.update(
+                    engine.getScore(),
+                    engine.getSnake().getSpeed(),
+                    engine.getActivePowerUp()
+            );
 
             // Draw
             renderer.clear();
@@ -45,7 +48,7 @@ public class Main {
             renderer.draw(gui);
             renderer.display();
 
-            // FPS Control
+            // FPS Control (kun rendering)
             long elapsed = System.currentTimeMillis() - start;
             long sleep = frameTime - elapsed;
 
@@ -64,10 +67,9 @@ public class Main {
 
         // Restart?
         if (over.playerWantsRestart()) {
-            main(args); // Restart game
+            main(args);
         } else {
             System.exit(0);
         }
     }
 }
-
