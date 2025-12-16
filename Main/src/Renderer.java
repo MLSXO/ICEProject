@@ -1,9 +1,6 @@
 import java.awt.*;
 
-/**
- * EGEN Renderer-klasse (IKKE javax.swing.Renderer!)
- * Bruges til at tegne Snake, Fruit og GUI
- */
+
 public class Renderer {
 
     private GameWindow window;

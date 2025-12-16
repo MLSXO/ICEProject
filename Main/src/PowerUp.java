@@ -17,17 +17,17 @@ public class PowerUp {
         this.startTime = System.currentTimeMillis();
     }
 
-    /** Starter powerup (resetter tiden) */
+
     public void activate() {
         startTime = System.currentTimeMillis();
     }
 
-    /** Tjekker om powerup stadig er aktiv */
+
     public boolean isActive() {
         return System.currentTimeMillis() - startTime < durationMs;
     }
 
-    /** Bruges af GUI */
+
     public String getName() {
         switch (type) {
             case GHOST:
