@@ -6,6 +6,10 @@ import java.util.Random;
 
 public class GameEngine implements ActionListener {
 
+    public static final int WIDTH = 800;
+    public static final int HEIGHT = 600;
+    public static final int TILE_SIZE = 20;
+
     private Snake snake;
     private Fruit currentFruit;
     private int score;
@@ -17,7 +21,7 @@ public class GameEngine implements ActionListener {
     private boolean endlessMode = false;
 
     private Timer gameTimer;
-    private int delay = 120;
+    private int delay = 120; // default timer delay
 
     public GameEngine() {
         snake = new Snake();
@@ -68,13 +72,14 @@ public class GameEngine implements ActionListener {
     private void update() {
         snake.move();
 
-        if (endlessMode) snake.wrapAround(800, 600);
+        if (endlessMode) snake.wrapAround(WIDTH, HEIGHT);
 
         if (snake.getHeadX() == currentFruit.getX() &&
                 snake.getHeadY() == currentFruit.getY()) {
             onFruitEaten();
         }
 
+        // PowerUp deaktiveres automatisk når tid er udløbet
         if (activePowerUp != null && !activePowerUp.isActive()) deactivatePowerUp();
 
         if (snake.hitSelf() && !hasGhostPowerUp()) stopGame();
@@ -95,14 +100,16 @@ public class GameEngine implements ActionListener {
         else if (roll < 95) type = FruitType.CHERRY;
         else type = FruitType.MELON;
 
-        int x = rand.nextInt(40) * 20;
-        int y = rand.nextInt(30) * 20;
+        int maxX = (WIDTH / TILE_SIZE) - 1;
+        int maxY = (HEIGHT / TILE_SIZE) - 1;
+
+        int x = rand.nextInt(maxX + 1) * TILE_SIZE;
+        int y = rand.nextInt(maxY + 1) * TILE_SIZE;
 
         currentFruit = new Fruit(x, y, type);
     }
 
     private void onFruitEaten() {
-
         switch (currentFruit.getType()) {
             case APPLE -> {
                 snake.grow(1);
@@ -118,7 +125,7 @@ public class GameEngine implements ActionListener {
                 snake.grow(3);
                 snake.setBodyColor(Color.YELLOW);
                 snake.setSpeed(2);
-                tempSpeedBoost(40, 2000);
+                tempSpeedBoost(40, 2000); // midlertidig hastighedsboost
             }
             case CHERRY -> {
                 snake.grow(1);
@@ -141,22 +148,26 @@ public class GameEngine implements ActionListener {
     private void addScore(int amount) {
         if (activePowerUp != null && activePowerUp.getType() == PowerUp.Type.DOUBLE_SCORE) {
             score += amount * 2;
-        } else score += amount;
+        } else {
+            score += amount;
+        }
     }
 
     private void activateRandomPowerUp() {
         int roll = rand.nextInt(3);
 
         switch (roll) {
-            case 0 -> {
+            case 0 -> { // GHOST
                 activePowerUp = new PowerUp(PowerUp.Type.GHOST, 3000);
                 snake.setPhase(true);
             }
-            case 1 -> {
+            case 1 -> { // SLOW
                 activePowerUp = new PowerUp(PowerUp.Type.SLOW, 5000);
                 tempSpeedBoost(200, 5000);
             }
-            case 2 -> activePowerUp = new PowerUp(PowerUp.Type.DOUBLE_SCORE, 10000);
+            case 2 -> { // DOUBLE_SCORE
+                activePowerUp = new PowerUp(PowerUp.Type.DOUBLE_SCORE, 10000);
+            }
         }
 
         activePowerUp.activate();
@@ -171,7 +182,7 @@ public class GameEngine implements ActionListener {
                 resetSpeed();
                 snake.setSpeed(1);
             }
-            case DOUBLE_SCORE -> {}
+            case DOUBLE_SCORE -> {} // ingen ekstra handling
         }
 
         activePowerUp = null;
@@ -186,7 +197,7 @@ public class GameEngine implements ActionListener {
        ====================== */
     private void tempSpeedBoost(int newDelay, int durationMs) {
         gameTimer.setDelay(newDelay);
-        new Timer(durationMs, e -> resetSpeed()).start();
+        // Power-up holder styr på varighed, reset sker automatisk når power-up udløber
     }
 
     private void resetSpeed() {

@@ -1,7 +1,4 @@
-/**
- * PowerUp repræsenterer midlertidige effekter i Snake-spillet
- * Bruges af GameEngine og vises i GUI via getActivePowerUp()
- */
+
 public class PowerUp {
 
     public enum Type {
