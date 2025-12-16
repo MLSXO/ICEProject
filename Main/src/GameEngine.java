@@ -1,12 +1,9 @@
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Random;
 
-/**
- * GameEngine der er Swing/JFrame-kompatibel
- * Bruger javax.swing.Timer i stedet for while-loop
- */
 public class GameEngine implements ActionListener {
 
     private Snake snake;
@@ -17,23 +14,23 @@ public class GameEngine implements ActionListener {
     private Random rand;
 
     private boolean running;
+    private boolean endlessMode = false;
+
     private Timer gameTimer;
-    private int delay; // ms mellem updates (styrer speed)
+    private int delay = 120;
 
     public GameEngine() {
-        this.snake = new Snake();
-        this.score = 0;
-        this.rand = new Random();
-        this.delay = 120; // start-hastighed
-        spawnFruit();
+        snake = new Snake();
+        rand = new Random();
+        score = 0;
 
+        spawnFruit();
         gameTimer = new Timer(delay, this);
     }
 
     /* ======================
        GAME STATE
        ====================== */
-
     public void startGame() {
         running = true;
         gameTimer.start();
@@ -44,70 +41,50 @@ public class GameEngine implements ActionListener {
         gameTimer.stop();
     }
 
-    public boolean isRunning() {
-        return running;
-    }
+    public boolean isRunning() { return running; }
 
-    public Snake getSnake() {
-        return snake;
-    }
+    public void toggleEndlessMode() { endlessMode = !endlessMode; }
 
-    public Fruit getFruits() {
-        return currentFruit;
-    }
+    public Snake getSnake() { return snake; }
 
-    public int getScore() {
-        return score;
-    }
+    public Fruit getFruits() { return currentFruit; }
+
+    public int getScore() { return score; }
 
     public String getActivePowerUp() {
-        if (activePowerUp != null && activePowerUp.isActive()) {
-            return activePowerUp.getName();
-        }
+        if (activePowerUp != null && activePowerUp.isActive()) return activePowerUp.getName();
         return "None";
     }
 
     /* ======================
-       SWING GAME LOOP
+       GAME LOOP
        ====================== */
-
     @Override
     public void actionPerformed(ActionEvent e) {
         if (!running) return;
-
         update();
     }
 
     private void update() {
-
         snake.move();
 
-        // Eat fruit
+        if (endlessMode) snake.wrapAround(800, 600);
+
         if (snake.getHeadX() == currentFruit.getX() &&
                 snake.getHeadY() == currentFruit.getY()) {
             onFruitEaten();
         }
 
-        // PowerUp expired
-        if (activePowerUp != null && !activePowerUp.isActive()) {
-            deactivatePowerUp();
-        }
+        if (activePowerUp != null && !activePowerUp.isActive()) deactivatePowerUp();
 
-        // Self collision
-        if (snake.hitSelf() && !hasGhostPowerUp()) {
-            stopGame();
-        }
+        if (snake.hitSelf() && !hasGhostPowerUp()) stopGame();
 
-        // Wall collision
-        if (snake.hitWall()) {
-            stopGame();
-        }
+        if (!endlessMode && snake.hitWall()) stopGame();
     }
 
     /* ======================
-       FRUIT HANDLING
+       FRUITS
        ====================== */
-
     private void spawnFruit() {
         FruitType type;
         int roll = rand.nextInt(100);
@@ -125,29 +102,32 @@ public class GameEngine implements ActionListener {
     }
 
     private void onFruitEaten() {
-        FruitType type = currentFruit.getType();
 
-        switch (type) {
+        switch (currentFruit.getType()) {
             case APPLE -> {
                 snake.grow(1);
+                snake.setBodyColor(Color.GREEN);
                 addScore(10);
             }
             case GRAPE -> {
                 snake.grow(2);
+                snake.setBodyColor(new Color(138, 43, 226));
                 addScore(20);
             }
             case BANANA -> {
                 snake.grow(3);
+                snake.setBodyColor(Color.YELLOW);
+                snake.setSpeed(2);
                 tempSpeedBoost(40, 2000);
             }
             case CHERRY -> {
                 snake.grow(1);
-                if (System.currentTimeMillis() - currentFruit.getSpawnTime() < 3000) {
-                    addScore(50);
-                }
+                snake.setBodyColor(Color.PINK);
+                if (System.currentTimeMillis() - currentFruit.getSpawnTime() < 3000) addScore(50);
             }
             case MELON -> {
                 snake.grow(2);
+                snake.setBodyColor(Color.ORANGE);
                 activateRandomPowerUp();
             }
         }
@@ -158,13 +138,10 @@ public class GameEngine implements ActionListener {
     /* ======================
        SCORE & POWERUPS
        ====================== */
-
     private void addScore(int amount) {
         if (activePowerUp != null && activePowerUp.getType() == PowerUp.Type.DOUBLE_SCORE) {
             score += amount * 2;
-        } else {
-            score += amount;
-        }
+        } else score += amount;
     }
 
     private void activateRandomPowerUp() {
@@ -190,8 +167,11 @@ public class GameEngine implements ActionListener {
 
         switch (activePowerUp.getType()) {
             case GHOST -> snake.setPhase(false);
-            case SLOW -> resetSpeed();
-            case DOUBLE_SCORE -> {} // ingen ekstra handling
+            case SLOW -> {
+                resetSpeed();
+                snake.setSpeed(1);
+            }
+            case DOUBLE_SCORE -> {}
         }
 
         activePowerUp = null;
@@ -202,9 +182,8 @@ public class GameEngine implements ActionListener {
     }
 
     /* ======================
-       SPEED CONTROL (Swing-safe)
+       SPEED CONTROL
        ====================== */
-
     private void tempSpeedBoost(int newDelay, int durationMs) {
         gameTimer.setDelay(newDelay);
         new Timer(durationMs, e -> resetSpeed()).start();
@@ -212,6 +191,6 @@ public class GameEngine implements ActionListener {
 
     private void resetSpeed() {
         gameTimer.setDelay(delay);
+        snake.setSpeed(1);
     }
 }
-
